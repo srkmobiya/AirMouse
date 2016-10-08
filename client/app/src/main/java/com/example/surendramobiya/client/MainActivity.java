@@ -1,15 +1,15 @@
 package com.example.surendramobiya.client;
 
 import android.hardware.SensorManager;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import java.io.BufferedWriter;
@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener,S
     private TextView tv2;
     private EditText ipbox;
     private EditText portbox;
-    private EditText textbox;
+    private EditText delay;
     private String xyz;
     private Socket socket;
 
@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener,S
     private static String pre_ip = "pre";
     private Button startbtn;
     private Button stopbtn;
+    private Switch debugswitch;
     String strtosend;
     private PrintWriter out;
     float ogx, ogy,ogz;
@@ -50,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener,S
         setContentView(R.layout.activity_main);
         ipbox = (EditText)findViewById(R.id.ip);
         portbox = (EditText)findViewById(R.id.port);
-        textbox = (EditText)findViewById(R.id.text);
+        delay = (EditText)findViewById(R.id.delay);
         startbtn = (Button) findViewById(R.id.startbtn) ;
         startbtn.setOnClickListener(this);
         stopbtn = (Button) findViewById(R.id.stopbtn) ;
@@ -61,6 +62,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener,S
 
         curr_ip = ipbox.getText().toString();
         serverport = Integer.parseInt(portbox.getText().toString());
+        debugswitch = (Switch) findViewById(R.id.debugging);
+
 
 
 
@@ -83,8 +86,25 @@ public class MainActivity extends AppCompatActivity implements OnClickListener,S
                     curr_ip = ipbox.getText().toString();
                     Log.d("cllient", "trying to be connected with "+ curr_ip);
                     serverport = Integer.parseInt(portbox.getText().toString());
-                    sManager.registerListener(this, sManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_UI);
-                    new Thread(new ClientThread(textbox.getText().toString())).start();
+                    int sensordelay = Integer.parseInt(delay.getText().toString());
+                    if (sensordelay == 1)
+                        sensordelay = SensorManager.SENSOR_DELAY_FASTEST;
+                    else
+                    if (sensordelay == 2)
+                        sensordelay = SensorManager.SENSOR_DELAY_GAME;
+                    else
+                    if (sensordelay == 3)
+                        sensordelay = SensorManager.SENSOR_DELAY_UI;
+                    else
+                    if (sensordelay == 4)
+                        sensordelay = SensorManager.SENSOR_DELAY_NORMAL;
+                    else
+                    {
+                        showToast("Wrong delay Input");
+                        return;
+                    }
+                    sManager.registerListener(this, sManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), sensordelay);
+                    //new Thread(new ClientThread(textbox.getText().toString())).start();
                     //Toast toast = Toast.makeText(getApplicationContext(), "Started sending data", Toast.LENGTH_SHORT);
                     //toast.show();
                     showToast("Starting sending data");
@@ -96,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener,S
                     //toast = Toast.makeText(getApplicationContext(), "Stopped sending data", Toast.LENGTH_SHORT);
                    // toast.show();
                     showToast("Stopped sending data");
-                    tv1.setText("");
+                    //tv1.setText("");
                     break;
 
                 default:
@@ -174,9 +194,11 @@ public class MainActivity extends AppCompatActivity implements OnClickListener,S
         //tv1.setText(xyz);
         if (!xyz.equals("0,0,0")) {
             //Log.d("client",xyz);
-            //String tmp = tv1.getText().toString();
-            //tmp += "\n" + xyz;
-            //tv1.setText(tmp);
+            if (debugswitch.isChecked()) {
+                String tmp = tv1.getText().toString();
+                tmp = xyz + "\n" + tmp;
+                tv1.setText(tmp);
+            }
             new Thread(new ClientThread(xyz)).start();
         }
 

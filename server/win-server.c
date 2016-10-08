@@ -10,10 +10,42 @@
 
 // Need to link with Ws2_32.lib
 #pragma comment (lib, "Ws2_32.lib")
+#pragma comment (lib, "user32.lib")
 // #pragma comment (lib, "Mswsock.lib")
 
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT "5000"
+
+void mousemove(int x, int y)
+{
+	INPUT ip;
+	ip.type=INPUT_MOUSE;
+	ip.mi.dx = x;
+	ip.mi.dy = y;
+	ip.mi.dwFlags = MOUSEEVENTF_MOVE;
+	ip.mi.time = 0;
+	ip.mi.dwExtraInfo= 0;
+	SendInput(1, &ip, sizeof(INPUT));
+
+}
+int flagp = 1;
+int flagn = 1;
+void movewheel(int dir)
+{
+	INPUT ip;
+	ip.type=INPUT_MOUSE;
+	//ip.mi.dx = x;
+	//ip.mi.dy = y;
+	if (dir == 1)
+		ip.mi.mouseData = 0x150;
+	else
+		ip.mi.mouseData = -0x150;
+	ip.mi.dwFlags = MOUSEEVENTF_WHEEL;
+	ip.mi.time = 0;
+	ip.mi.dwExtraInfo= 0;
+	SendInput(1, &ip, sizeof(INPUT));
+
+}
 
 int __cdecl main(void) 
 {
@@ -117,7 +149,34 @@ int __cdecl main(void)
 		x=xyz[0];
 		y=xyz[1];
 		z=xyz[2];
+		if (x>6.0) {
+			if (flagp == 1) {
+				flagn = 0;
+				movewheel(1);
+			}
+		}
+		else
+		if (x<-6.0) {
+			if (flagn == 1) {
+				flagp = 0;
+				movewheel(-1);
+			}
+		}
+
+		if (x <-1.0 && flagn == 0)
+			flagn = -1;
+		if (x > 1.0 && flagn == -1)
+			flagn = 1;
+
+		if (x > 1.0 && flagp == 0)
+			flagp = -1;
+
+		if (x < -1.0 && flagp == -1)
+			flagp = 1;
+		//printf("flagp %d\n", flagp);
+		//printf("flagn %d\n", flagn);
 		//printf("z %f\n",z);
+		//mousemove(-z*100,-x*100);
 		printf("%f %f %f\n",x,y,z);
 
 
