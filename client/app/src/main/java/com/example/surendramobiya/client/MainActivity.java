@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener,S
         startbtn.setOnClickListener(this);
         stopbtn = (Button) findViewById(R.id.stopbtn) ;
         stopbtn.setOnClickListener(this);
+        tv2 = (TextView) findViewById(R.id.t2);
         tv1 = (TextView) findViewById(R.id.t1);
         tv1.setMovementMethod(new ScrollingMovementMethod());
         sManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -108,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener,S
                     //Toast toast = Toast.makeText(getApplicationContext(), "Started sending data", Toast.LENGTH_SHORT);
                     //toast.show();
                     showToast("Starting sending data");
-                    tv1.setText("Sending data to "+curr_ip);
+                    tv2.setText("Sending data to "+curr_ip);
                     break;
 
                 case R.id.stopbtn:
@@ -116,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener,S
                     //toast = Toast.makeText(getApplicationContext(), "Stopped sending data", Toast.LENGTH_SHORT);
                    // toast.show();
                     showToast("Stopped sending data");
-                    //tv1.setText("");
+                    tv2.setText("");
                     break;
 
                 default:
@@ -128,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener,S
             Log.d("cllient", "failed"+e.getMessage());
             //Toast toast = Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT);
             //toast.show();
-            showToast("Not connected");
+            showToast("Not connected " + e.getMessage() );
         }
 
     }
