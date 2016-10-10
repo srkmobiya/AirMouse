@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -25,7 +26,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements OnClickListener,SensorEventListener {
+public class MainActivity extends AppCompatActivity implements OnClickListener,SensorEventListener,View.OnTouchListener {
 
     private TextView tv1;
     private TextView tv2;
@@ -58,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener,S
         stopbtn.setOnClickListener(this);
         tv2 = (TextView) findViewById(R.id.t2);
         tv1 = (TextView) findViewById(R.id.t1);
+        tv1.setOnTouchListener(this);
         tv1.setMovementMethod(new ScrollingMovementMethod());
         sManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
@@ -78,6 +80,22 @@ public class MainActivity extends AppCompatActivity implements OnClickListener,S
             }
         });
     }
+
+    public void senddata(String strtosend)
+    {
+        new Thread(new ClientThread(strtosend)).start();
+    }
+
+    @Override
+    public boolean onTouch(View view, MotionEvent motionEvent) {
+        switch (view.getId()) {
+            case R.id.t1:
+                //showToast("touch ");
+                senddata("LC");
+        }
+        return false;
+    }
+
     @Override
     public void onClick(View view) {
         try {
@@ -118,7 +136,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener,S
                    // toast.show();
                     showToast("Stopped sending data");
                     tv2.setText("");
+                    //socket.close();
                     break;
+
 
                 default:
                     break;
@@ -200,7 +220,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener,S
                 tmp = xyz + "\n" + tmp;
                 tv1.setText(tmp);
             }
-            new Thread(new ClientThread(xyz)).start();
+            //new Thread(new ClientThread(xyz)).start();
+            senddata(xyz);
         }
 
     }
@@ -209,7 +230,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener,S
     public void onAccuracyChanged(Sensor sensor, int i) {
 
     }
-
 
     class ClientThread implements Runnable {
         private String strtosend;
@@ -237,6 +257,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener,S
 
                 //}
                     out.println(strtosend);
+                   socket.close();
 
             } catch (UnknownHostException e1) {
                 //tv1.setText(e1.getMessage());

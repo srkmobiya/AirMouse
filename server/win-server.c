@@ -47,6 +47,22 @@ void movewheel(int dir)
 
 }
 
+void leftclick()
+{
+	INPUT ip;
+	ip.type=INPUT_MOUSE;
+	//ip.mi.dx = x;
+	//ip.mi.dy = y;
+
+	ip.mi.time = 0;
+	ip.mi.dwExtraInfo= 0;
+	ip.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+	SendInput(1, &ip, sizeof(INPUT));
+
+	ip.mi.dwFlags = MOUSEEVENTF_LEFTUP;
+	SendInput(1, &ip, sizeof(INPUT));
+}
+
 int __cdecl main(void) 
 {
     WSADATA wsaData;
@@ -92,6 +108,12 @@ int __cdecl main(void)
         return 1;
     }
 
+    u_long iMode = 1;
+    iResult = ioctlsocket(ListenSocket, FIONBIO, &iMode);
+    if (iResult != NO_ERROR)
+  	printf("ioctlsocket failed with error: %ld\n", iResult);
+  
+
     // Setup the TCP listening socket
     iResult = bind( ListenSocket, result->ai_addr, (int)result->ai_addrlen);
     if (iResult == SOCKET_ERROR) {
@@ -114,10 +136,21 @@ int __cdecl main(void)
 
     do {
     		// Accept a client socket
+	if (kbhit() && _getch() == 'q')
+	{
+		closesocket(ListenSocket);
+		break;
+	}
+
     	//printf("Waiting for client\n");
     	ClientSocket = accept(ListenSocket, NULL, NULL);
     	//printf("client connected\n");
     	if (ClientSocket == INVALID_SOCKET) {
+		if (WSAGetLastError() == WSAEWOULDBLOCK) {
+			//printf("block\n");
+			Sleep(25);
+			continue;
+		}
         	printf("accept failed with error: %d\n", WSAGetLastError());
         	closesocket(ListenSocket);
         	WSACleanup();
@@ -131,7 +164,15 @@ int __cdecl main(void)
     //do {
 
         iResult = recv(ClientSocket, recvbuf, recvbuflen, 0);
+
         if (iResult > 0) {
+		if (!strncmp(recvbuf, "LC", 2))
+		{
+			printf("click %s\n", recvbuf);
+			leftclick();
+			continue;
+		}
+
 		char *str = strtok(recvbuf, "\n");
 		int count = 0;
 		float xyz[3],x,y,z;
@@ -175,7 +216,7 @@ int __cdecl main(void)
 			flagp = 1;
 		//printf("flagp %d\n", flagp);
 		//printf("flagn %d\n", flagn);
-		//printf("z %f\n",z);
+		//printf("y %f\n",y);
 		//mousemove(-z*100,-x*100);
 		printf("%f %f %f\n",x,y,z);
 
@@ -194,6 +235,8 @@ int __cdecl main(void)
 	     printf("Connection closing...\n");
 	}
         else  {
+	    if (WSAGetLastError() == WSAEWOULDBLOCK)
+		    continue;
             printf("recv failed with error: %d\n", WSAGetLastError());
             closesocket(ClientSocket);
             WSACleanup();
