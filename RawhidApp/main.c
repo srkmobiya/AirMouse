@@ -46,14 +46,18 @@ int main()
 	}
 	printf("found rawhid device\n");
 
-	int pre = 0;
+	float pre = 0;
 	num =0;
 
 	
 	char buf1[64];
 	char *a;
-	int curr[3];
+	float curr[3];
 	while (1) {
+		if (kbhit() && _getch() == 'q')
+		{
+			break;
+		}
 		/*buf[0] = 'r';
                 buf[1] = 'a';
                 for (i=2; i<64; i++) {
@@ -70,22 +74,31 @@ int main()
                 if (num > 0) {
                         //printf("\nRecv %d bytes:\n", num);
 			//printf("%s\n", buf);
-			int x,y,z;
+			float x,y,z;
 			i=0;
                         a = strtok(buf, ",");
 			while(a!=NULL)
 			{
-				curr[i++] = atoi(a)>>6;
+				curr[i++] = atoi(a)/100.0;
 				a= strtok(NULL, ",");
 			}
-			x=curr[2];
+			x=curr[0];
 			y=curr[1];
 			z=curr[2];
-			if (abs(pre - x) > 0)
-			{ 
-				printf("%d \n", ( x));
-				mousemove(-(x), y);
-				pre = x;
+			if (abs(pre - z) > 0)
+			{
+			        if (z > 0.03 && z < 1.0)
+					z = 1;
+				if (z < -0.03 && z > -1.0)
+	 				z = -1;	
+
+				if (y > 0.03 && y < 1.0)
+					y = 1;
+				if (y < -0.03 && y > -1.0)
+	 				y = -1;
+				printf("%f \n", ( z));
+				mousemove(-(z), y);
+				pre = z;
 			}
                         
                 }
